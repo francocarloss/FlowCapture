@@ -3,436 +3,1123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diagramas de Flujo - Seguros Universales</title>
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <title>Formulario de Jornada Médica</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
+        :root {
+            --primary-color: #1a3a5f;
+            --secondary-color: #3498db;
+            --accent-color: #f39c12;
+            --light-color: #f5f5f5;
+            --dark-color: #2c3e50;
+            --success-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --text-color: #333;
+            --border-radius: 5px;
+            --box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #ffffff;
-            padding: 20px;
+            background-color: #f0f2f5;
+            color: var(--text-color);
+            line-height: 1.6;
         }
 
         .container {
-            max-width: 1800px;
+            max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
         }
 
-        .header {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            border: 3px solid #000000;
-            margin-bottom: 30px;
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px 0;
             text-align: center;
+            margin-bottom: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
         }
 
-        .header h1 {
-            color: #1F4E78;
-            font-size: 2.5em;
+        h1 {
+            font-size: 28px;
             margin-bottom: 10px;
-            font-weight: 700;
         }
 
-        .header p {
-            color: #666;
-            font-size: 1.2em;
-        }
-
-        .viz-container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            border: 3px solid #000000;
+        .form-container, .records-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 25px;
             margin-bottom: 30px;
-            display: none;
         }
-
-        .viz-container.active {
-            display: block;
-        }
-
-        .viz-title {
-            color: #1F4E78;
-            font-size: 1.8em;
+        
+        .form-group {
             margin-bottom: 20px;
-            text-align: center;
-            font-weight: bold;
         }
 
-        .viz-description {
-            color: #666;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 1.1em;
-        }
-
-        #sankeyCompleto {
-            width: 100%;
-            height: 850px;
-        }
-
-        .legend {
+        .form-row {
             display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-top: 20px;
             flex-wrap: wrap;
+            margin: 0 -10px;
         }
 
-        .legend-item {
+        .form-col {
+            flex: 1;
+            padding: 0 10px;
+            min-width: 250px;
+            margin-bottom: 10px; 
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:disabled, select:disabled, textarea:disabled {
+            background-color: #e9ecef;
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: calc(100% - 12px) center;
+            padding-right: 30px;
+        }
+
+        .radio-group, .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center; 
+            padding-top: 8px; 
+        }
+
+        .radio-option, .checkbox-option {
             display: flex;
             align-items: center;
-            gap: 10px;
+            cursor: pointer;
         }
 
-        .legend-color {
-            width: 30px;
-            height: 20px;
-            border-radius: 4px;
-            border: 1px solid #000;
+        .radio-option input, .checkbox-option input {
+            width: auto;
+            margin-right: 8px;
         }
 
-        .legend-label {
+        .section-title {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            font-size: 20px;
+        }
+        .section-title:first-of-type {
+            margin-top: 0;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 16px;
             font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 120px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #16324f;
+        }
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+        .btn-warning {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        .btn-warning:hover {
+            background-color: #e67e22;
+        }
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+        .btn-icon {
+            margin-right: 8px;
+        }
+
+        .modal {
+            display: none; 
+            position: fixed;
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto; 
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 700px; 
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: modalFadeIn 0.3s;
+            margin: 20px 0; 
+        }
+        
+        #editRecordModal .modal-content { 
+             max-height: 90vh; 
+        }
+        #editRecordModal .modal-body {
+            max-height: calc(90vh - 160px); 
+            overflow-y: auto; 
+        }
+
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            color: var(--primary-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #aaa;
+            padding: 5px;
+        }
+        .close-modal:hover {
             color: #333;
         }
 
-        .footer {
-            text-align: center;
-            color: #666;
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .records-container {
             margin-top: 30px;
-            padding: 20px;
-            font-size: 0.9em;
+            overflow-x: auto; 
         }
 
-        .info-box {
-            background: #f8f9fa;
-            border-left: 4px solid #1F4E78;
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap; 
+            gap: 10px;
+        }
+        .table-header .section-title {
+            margin-bottom: 0;
+        }
+        .table-header div:last-child { 
+             display: flex;
+             gap: 10px;
+             flex-wrap: wrap;
+        }
+
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px; 
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            position: sticky; 
+            top: 0; 
+            z-index: 10;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: nowrap; 
+        }
+
+        .btn-sm {
+            padding: 6px 10px;
+            font-size: 14px;
+            min-width: auto;
+        }
+
+        .alert {
             padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            display: none; 
+            font-size: 16px;
         }
 
-        .info-box h3 {
-            color: #1F4E78;
-            margin-bottom: 10px;
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
         }
 
-        .info-box ul {
-            margin-left: 20px;
-            color: #666;
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
         }
 
-        .info-box li {
-            margin: 5px 0;
+        .tab-container {
+            margin-bottom: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         @media (max-width: 768px) {
-            .tabs {
+            .form-col {
+                flex: 100%;
+                min-width: unset; 
+            }
+            
+            .buttons {
                 flex-direction: column;
             }
             
-            .tab {
-                text-align: center;
+            .btn {
+                width: 100%;
+            }
+            .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .table-header div:last-child {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .table-header div:last-child .btn {
+                flex-grow: 1; 
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Diagrama de Flujo de Distribución de Cartera</h1>
-            <p>Centro de Costo → Sub Ramo → Mercado | Producción Enero - Septiembre 2025</p>
-        </div>
+        <header>
+            <h1>Formulario de Jornada Médica</h1>
+            <p>Sistema de registro para jornadas médicas y clínicas</p>
+        </header>
 
-        <!-- Visualización: Sankey Completo -->
-        <div id="viz-completo" class="viz-container active">
-            <h2 class="viz-title">FLUJO COMPLETO: CENTRO DE COSTO → SUB RAMO → MERCADO</h2>
-            <p class="viz-description">El grosor de las líneas representa el volumen de producción. Cada color identifica un Sub Ramo específico.</p>
-            <div id="sankeyCompleto"></div>
-            <div class="info-box">
-                <h3>💡 Cómo interpretar:</h3>
-                <ul>
-                    <li>Las líneas más gruesas indican mayor producción</li>
-                    <li><strong>Cada color representa un Sub Ramo diferente</strong> - sigue el color para ver el flujo completo de un producto</li>
-                    <li>Puedes arrastrar los nodos para reorganizar la visualización</li>
-                    <li>Pasa el mouse sobre las líneas para ver el Sub Ramo y el monto exacto</li>
-                </ul>
-            </div>
-            <div class="legend">
-                <div class="legend-item">
-                    <div class="legend-color" style="background-color: #e74c3c;"></div>
-                    <span class="legend-label">VIDA</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background-color: #3498db;"></div>
-                    <span class="legend-label">VEHÍCULOS AUTOMOTORES</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background-color: #2ecc71;"></div>
-                    <span class="legend-label">SEGURO TÉCNICO</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background-color: #f39c12;"></div>
-                    <span class="legend-label">ACCIDENTES</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background-color: #9b59b6;"></div>
-                    <span class="legend-label">DESEMPLEO</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background-color: #1abc9c;"></div>
-                    <span class="legend-label">PARAMÉTRICO</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background-color: #e67e22;"></div>
-                    <span class="legend-label">INCENDIO</span>
-                </div>
+        <div class="tab-container">
+            <div class="tabs">
+                <div class="tab active" data-tab="formulario">Formulario</div>
+                <div class="tab" data-tab="registros">Registros</div>
             </div>
         </div>
 
-        <div class="footer">
-            <p>© 2025 Seguros Universales S.A. | División de Canales Alternos | Análisis de Producción Enero-Septiembre</p>
+        <div id="alertMessage" class="alert"></div>
+
+        <div id="formulario" class="tab-content active">
+            <div class="form-container">
+                <form id="medicalForm">
+                    <!-- Campo Código de Jornada -->
+                    <div class="form-group">
+                        <label for="codigoJornada">Código de Jornada: <span class="required">*</span></label>
+                        <select id="codigoJornada" name="codigoJornada" required>
+                            <option value="">Seleccione un código...</option>
+                            <option value="001">001 - Banco de Antigua</option>
+                            <option value="002">002 - Finca</option>
+                            <option value="003">003 - PPEM</option>
+                            <option value="004">004 - SIN ASIGNAR</option>
+                            <option value="005">005 - SIN ASIGNAR</option>
+                            <option value="006">006 - SIN ASIGNAR</option>
+                            <option value="007">007 - SIN ASIGNAR</option>
+                            <option value="008">008 - SIN ASIGNAR</option>
+                            <option value="009">009 - SIN ASIGNAR</option>
+                        </select>
+                    </div>
+
+                    <h2 class="section-title">Información del Evento</h2>
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="tipoEvento">Tipo de Evento</label>
+                                <select id="tipoEvento" name="tipoEvento">
+                                    <option value="" disabled selected>Seleccione una opción</option>
+                                    <option value="JORNADA MEDICA">JORNADA MÉDICA</option>
+                                    <option value="CLINICA MOVIL">CLÍNICA MÓVIL</option>
+                                    <option value="CLINICA TEMPORAL">CLÍNICA TEMPORAL</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="especialidad">Especialidad Requerida</label>
+                                <select id="especialidad" name="especialidad">
+                                    <option value="" disabled selected>Seleccione una opción</option>
+                                    <option value="Medicina general">Medicina general</option>
+                                    <option value="Pediatría">Pediatría</option>
+                                    <option value="Ginecología">Ginecología</option>
+                                    <option value="Oftalmología">Oftalmología</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label>Tipo de Consulta</label>
+                                <div class="radio-group">
+                                    <label class="radio-option"><input type="radio" name="tipoConsulta" value="INDIVIDUAL" checked> INDIVIDUAL</label>
+                                    <label class="radio-option"><input type="radio" name="tipoConsulta" value="FAMILIAR"> FAMILIAR</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="noMenoresAtendidos">No. Menores Atendidos</label>
+                                <select id="noMenoresAtendidos" name="noMenoresAtendidos">
+                                    <option value="0" selected>0</option>
+                                    <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="noMayoresAtendidos">No. Mayores Atendidos</label>
+                                <select id="noMayoresAtendidos" name="noMayoresAtendidos">
+                                    <option value="0">0</option>
+                                    <option value="1" selected>1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 class="section-title">Información Personal</h2>
+                    <div class="form-row">
+                        <div class="form-col"><div class="form-group"><label for="primerNombre">Primer Nombre</label><input type="text" id="primerNombre" name="primerNombre"></div></div>
+                        <div class="form-col"><div class="form-group"><label for="segundoNombre">Segundo Nombre</label><input type="text" id="segundoNombre" name="segundoNombre"></div></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-col"><div class="form-group"><label for="primerApellido">Primer Apellido</label><input type="text" id="primerApellido" name="primerApellido"></div></div>
+                        <div class="form-col"><div class="form-group"><label for="segundoApellido">Segundo Apellido</label><input type="text" id="segundoApellido" name="segundoApellido"></div></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-col"><div class="form-group"><label for="apellidoCasada">Apellido de Casada</label><input type="text" id="apellidoCasada" name="apellidoCasada"></div></div>
+                        <div class="form-col"><div class="form-group"><label for="dpi">DPI</label><input type="text" id="dpi" name="dpi"></div></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-col"><div class="form-group"><label for="telefono">Número de Teléfono</label><input type="tel" id="telefono" name="telefono"></div></div>
+                        <div class="form-col"><div class="form-group"><label for="sexo">Sexo</label><select id="sexo" name="sexo"><option value="" disabled selected>Seleccione</option><option value="M">M</option><option value="F">F</option></select></div></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-col"><div class="form-group"><label for="idioma">Idioma</label><select id="idioma" name="idioma"><option value="" disabled selected>Seleccione</option><option value="Español">Español</option><option value="Quiché">Quiché</option></select></div></div>
+                        <div class="form-col"><div class="form-group"><label for="fechaNacimiento">Fecha de Nacimiento</label><input type="date" id="fechaNacimiento" name="fechaNacimiento"></div></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-col"><div class="form-group"><label for="departamento">Departamento</label><input type="text" id="departamento" name="departamento"></div></div>
+                        <div class="form-col"><div class="form-group"><label for="municipio">Municipio</label><input type="text" id="municipio" name="municipio"></div></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-col"><div class="form-group"><label for="correo">Correo Electrónico</label><input type="email" id="correo" name="correo"></div></div>
+                        <div class="form-col"><div class="form-group"><label for="nit">NIT</label><input type="text" id="nit" name="nit"></div></div>
+                    </div>
+
+                    <h2 class="section-title">Información Adicional</h2>
+                    <div class="form-row">
+                        <div class="form-col"><div class="form-group"><label for="comoEntero">¿Cómo se enteró de la jornada?</label><select id="comoEntero" name="comoEntero"><option value="" disabled selected>Seleccione</option><option value="Asesor">Asesor</option><option value="Redes sociales">Redes sociales</option><option value="Unidad Móvil">Unidad Móvil</option><option value="Referido">Referido</option><option value="Volante">Volante</option></select></div></div>
+                        <div class="form-col"><div class="form-group"><label for="ocupacion">Ocupación</label><select id="ocupacion" name="ocupacion"><option value="" disabled selected>Seleccione</option><option value="Comerciante">Comerciante</option><option value="Dependiente privado">Dependiente privado</option><option value="Dependiente público">Dependiente público</option><option value="Remesas">Remesas</option><option value="Jubilado">Jubilado</option><option value="Desempleado">Desempleado</option></select></div></div>
+                    </div>
+                    
+                    <div class="buttons">
+                        <button type="submit" class="btn btn-primary">
+                            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                            Guardar Registro
+                        </button>
+                        <button type="button" id="resetFormBtn" class="btn btn-secondary">
+                            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                            Limpiar Formulario
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="registros" class="tab-content">
+            <div class="records-container">
+                <div class="table-header">
+                    <h2 class="section-title">Registros Guardados</h2>
+                    <div>
+                        <button id="exportExcelBtn" class="btn btn-success">
+                            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            Exportar a Excel
+                        </button>
+                        <button id="resetDataBtn" class="btn btn-danger">
+                            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                            Borrar Todos
+                        </button>
+                    </div>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table id="recordsTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Código Jornada</th>
+                                <th>Nombre</th>
+                                <th>Apellidos</th>
+                                <th>DPI</th>
+                                <th>Teléfono</th>
+                                <th>Tipo Evento</th>
+                                <th>Especialidad</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordsTableBody"></tbody>
+                    </table>
+                </div>
+                 <p id="noRecordsMessage" style="text-align: center; padding: 20px; display:none;">No hay registros guardados.</p>
+            </div>
+        </div>
+
+        <div id="confirmDeleteAllModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header"><h3 class="modal-title">Confirmar Eliminación Total</h3><button class="close-modal" data-modal-id="confirmDeleteAllModal">&times;</button></div>
+                <div class="modal-body"><p>¿Estás seguro de que deseas eliminar TODOS los registros? Esta acción no se puede deshacer.</p></div>
+                <div class="modal-footer">
+                    <button id="cancelDeleteAllBtn" class="btn btn-secondary">Cancelar</button>
+                    <button id="confirmDeleteAllActionBtn" class="btn btn-danger">Sí, Eliminar Todo</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="confirmDeleteRecordModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header"><h3 class="modal-title">Confirmar Eliminación</h3><button class="close-modal" data-modal-id="confirmDeleteRecordModal">&times;</button></div>
+                <div class="modal-body"><p>¿Estás seguro de que deseas eliminar este registro? Esta acción no se puede deshacer.</p></div>
+                <div class="modal-footer">
+                    <button id="cancelDeleteRecordBtn" class="btn btn-secondary">Cancelar</button>
+                    <button id="confirmDeleteRecordActionBtn" class="btn btn-danger">Sí, Eliminar</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="editRecordModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header"><h3 class="modal-title">Editar Registro</h3><button class="close-modal" data-modal-id="editRecordModal">&times;</button></div>
+                <div class="modal-body">
+                    <form id="editForm">
+                        <input type="hidden" id="editId">
+                        
+                        <!-- Campo Código de Jornada -->
+                        <div class="form-group">
+                            <label for="editCodigoJornada">Código de Jornada: <span class="required">*</span></label>
+                            <select id="editCodigoJornada" name="editCodigoJornada" required>
+                                <option value="">Seleccione un código...</option>
+                                <option value="001">001 - Banco de Antigua</option>
+                                <option value="002">002 - Finca</option>
+                                <option value="003">003 - PPEM</option>
+                                <option value="004">004 - SIN ASIGNAR</option>
+                                <option value="005">005 - SIN ASIGNAR</option>
+                                <option value="006">006 - SIN ASIGNAR</option>
+                                <option value="007">007 - SIN ASIGNAR</option>
+                                <option value="008">008 - SIN ASIGNAR</option>
+                                <option value="009">009 - SIN ASIGNAR</option>
+                            </select>
+                        </div>
+                        
+                        <h3 class="section-title">Información del Evento</h3>
+                        <div class="form-row">
+                            <div class="form-col"><div class="form-group"><label for="editTipoEvento">Tipo de Evento</label><select id="editTipoEvento" name="editTipoEvento"><option value="JORNADA MEDICA">JORNADA MÉDICA</option><option value="CLINICA MOVIL">CLÍNICA MÓVIL</option><option value="CLINICA TEMPORAL">CLÍNICA TEMPORAL</option></select></div></div>
+                            <div class="form-col"><div class="form-group"><label for="editEspecialidad">Especialidad Requerida</label><select id="editEspecialidad" name="editEspecialidad"><option value="Medicina general">Medicina general</option><option value="Pediatría">Pediatría</option><option value="Ginecología">Ginecología</option><option value="Oftalmología">Oftalmología</option></select></div></div>
+                        </div>
+                        <div class="form-row">
+                           <div class="form-col"><div class="form-group"><label>Tipo de Consulta</label><div class="radio-group"><label class="radio-option"><input type="radio" name="editTipoConsulta" value="INDIVIDUAL"> INDIVIDUAL</label><label class="radio-option"><input type="radio" name="editTipoConsulta" value="FAMILIAR"> FAMILIAR</label></div></div></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-col"><div class="form-group"><label for="editNoMenoresAtendidos">No. Menores Atendidos</label><select id="editNoMenoresAtendidos" name="editNoMenoresAtendidos"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div></div>
+                            <div class="form-col"><div class="form-group"><label for="editNoMayoresAtendidos">No. Mayores Atendidos</label><select id="editNoMayoresAtendidos" name="editNoMayoresAtendidos"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div></div>
+                        </div>
+
+                        <h3 class="section-title">Información Personal</h3>
+                        <div class="form-row">
+                            <div class="form-col"><div class="form-group"><label for="editPrimerNombre">Primer Nombre</label><input type="text" id="editPrimerNombre" name="editPrimerNombre"></div></div>
+                            <div class="form-col"><div class="form-group"><label for="editSegundoNombre">Segundo Nombre</label><input type="text" id="editSegundoNombre" name="editSegundoNombre"></div></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-col"><div class="form-group"><label for="editPrimerApellido">Primer Apellido</label><input type="text" id="editPrimerApellido" name="editPrimerApellido"></div></div>
+                            <div class="form-col"><div class="form-group"><label for="editSegundoApellido">Segundo Apellido</label><input type="text" id="editSegundoApellido" name="editSegundoApellido"></div></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-col"><div class="form-group"><label for="editApellidoCasada">Apellido de Casada</label><input type="text" id="editApellidoCasada" name="editApellidoCasada"></div></div>
+                            <div class="form-col"><div class="form-group"><label for="editDpi">DPI</label><input type="text" id="editDpi" name="editDpi"></div></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-col"><div class="form-group"><label for="editTelefono">Número de Teléfono</label><input type="tel" id="editTelefono" name="editTelefono"></div></div>
+                            <div class="form-col"><div class="form-group"><label for="editSexo">Sexo</label><select id="editSexo" name="editSexo"><option value="M">M</option><option value="F">F</option></select></div></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-col"><div class="form-group"><label for="editIdioma">Idioma</label><select id="editIdioma" name="editIdioma"><option value="Español">Español</option><option value="Quiché">Quiché</option></select></div></div>
+                            <div class="form-col"><div class="form-group"><label for="editFechaNacimiento">Fecha de Nacimiento</label><input type="date" id="editFechaNacimiento" name="editFechaNacimiento"></div></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-col"><div class="form-group"><label for="editDepartamento">Departamento</label><input type="text" id="editDepartamento" name="editDepartamento"></div></div>
+                            <div class="form-col"><div class="form-group"><label for="editMunicipio">Municipio</label><input type="text" id="editMunicipio" name="editMunicipio"></div></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-col"><div class="form-group"><label for="editCorreo">Correo Electrónico</label><input type="email" id="editCorreo" name="editCorreo"></div></div>
+                            <div class="form-col"><div class="form-group"><label for="editNit">NIT</label><input type="text" id="editNit" name="editNit"></div></div>
+                        </div>
+
+                        <h3 class="section-title">Información Adicional</h3>
+                        <div class="form-row">
+                            <div class="form-col"><div class="form-group"><label for="editComoEntero">¿Cómo se enteró de la jornada?</label><select id="editComoEntero" name="editComoEntero"><option value="Asesor">Asesor</option><option value="Redes sociales">Redes sociales</option><option value="Unidad Móvil">Unidad Móvil</option><option value="Referido">Referido</option><option value="Volante">Volante</option></select></div></div>
+                            <div class="form-col"><div class="form-group"><label for="editOcupacion">Ocupación</label><select id="editOcupacion" name="editOcupacion"><option value="Comerciante">Comerciante</option><option value="Dependiente privado">Dependiente privado</option><option value="Dependiente público">Dependiente público</option><option value="Remesas">Remesas</option><option value="Jubilado">Jubilado</option><option value="Desempleado">Desempleado</option></select></div></div>
+                        </div>
+
+                         <div class="modal-footer" style="border-top: none; padding-top: 0; margin-top: 20px;">
+                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
-    <script>
-        // Paleta de colores para Sub Ramos
-        const ramoColors = {
-            'VIDA': '#e74c3c',
-            'VEHICULOS AUTOMOTORES': '#3498db',
-            'SEGURO TECNICO': '#2ecc71',
-            'ACCIDENTES': '#f39c12',
-            'DESEMPLEO': '#9b59b6',
-            'PARAMÉTRICO': '#1abc9c',
-            'INCENDIO Y LINEAS ALIADAS': '#e67e22',
-            'AVIACION': '#34495e',
-            'RESPONSABILIDAD CIVIL': '#16a085',
-            'TRANSPORTE': '#d35400',
-            'ROBO': '#c0392b',
-            'DINERO Y/O VALORES': '#8e44ad',
-            'SEGURO OBLIGATORIO': '#27ae60',
-            'MARITIMOS': '#2980b9'
-        };
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const medicalForm = document.getElementById('medicalForm');
+    const editForm = document.getElementById('editForm');
+    const recordsTableBody = document.getElementById('recordsTableBody');
+    const exportExcelBtn = document.getElementById('exportExcelBtn');
+    const resetDataBtn = document.getElementById('resetDataBtn');
+    const resetFormBtn = document.getElementById('resetFormBtn');
+    const alertMessageDiv = document.getElementById('alertMessage');
+    const noRecordsMessage = document.getElementById('noRecordsMessage');
 
-        // Datos de producción por centro de costo (en millones)
-        const produccionData = {
-            'BAC': 44.82,
-            'Banco Antigua': 31.79,
-            'TIGO': 15.53,
-            'Venta Directa': 13.00,
-            'CrediQ': 8.62,
-            'Otras cuentas': 7.17,
-            'Distelsa': 5.74,
-            'Guadalupana': 4.72,
-            'Jarfesa': 3.72,
-            'CrediChapin': 3.66,
-            'Finca': 3.61,
-            'Banco Inmobiliario': 1.80,
-            'MINDEF': 1.60,
-            'Sostengo': 1.22,
-            'Cooitza': 1.02
-        };
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
 
-        // Participación por centro de costo
-        const participacionCentro = {
-            'BAC': 30.28,
-            'Banco Antigua': 21.48,
-            'TIGO': 10.49,
-            'Venta Directa': 8.78,
-            'CrediQ': 5.82,
-            'Otras cuentas': 4.84,
-            'Distelsa': 3.88,
-            'Guadalupana': 3.19,
-            'Jarfesa': 2.51,
-            'CrediChapin': 2.47,
-            'Finca': 2.44,
-            'MINDEF': 1.08,
-            'Sostengo': 0.82,
-            'Cooitza': 0.69,
-            'Banco Inmobiliario': 1.22
-        };
+    const confirmDeleteAllModal = document.getElementById('confirmDeleteAllModal');
+    const confirmDeleteRecordModal = document.getElementById('confirmDeleteRecordModal');
+    const editRecordModal = document.getElementById('editRecordModal');
+    
+    const cancelDeleteAllBtn = document.getElementById('cancelDeleteAllBtn');
+    const confirmDeleteAllActionBtn = document.getElementById('confirmDeleteAllActionBtn');
+    
+    const cancelDeleteRecordBtn = document.getElementById('cancelDeleteRecordBtn');
+    const confirmDeleteRecordActionBtn = document.getElementById('confirmDeleteRecordActionBtn');
 
-        // Participación por mercado
-        const participacionMercado = {
-            'CONCESONARIO': 36.10,
-            'BANCA': 22.69,
-            'TELEFONIA': 10.49,
-            'VENTA DIRECTA': 8.78,
-            'FINANCIERA': 4.91,
-            'OTROS CANALES': 4.84,
-            'COPERATIVA': 3.88,
-            'Tienda de retail': 3.88,
-            'COMERCIALIZADOR': 2.51,
-            'GOBIERNO': 1.08,
-            'APPS/WEB': 0.82
-        };
+    const closeModalButtons = document.querySelectorAll('.close-modal');
 
-        // Conexiones Centro de Costo × Sub Ramo
-        const conexiones = {
-            'BAC': ['VEHICULOS AUTOMOTORES', 'ACCIDENTES', 'VIDA'],
-            'Banco Antigua': ['INCENDIO Y LINEAS ALIADAS', 'VEHICULOS AUTOMOTORES', 'DESEMPLEO', 'PARAMÉTRICO', 'VIDA'],
-            'Banco Inmobiliario': ['VIDA'],
-            'Cooitza': ['VEHICULOS AUTOMOTORES', 'ACCIDENTES', 'VIDA'],
-            'CrediChapin': ['VEHICULOS AUTOMOTORES', 'VIDA'],
-            'CrediQ': ['VEHICULOS AUTOMOTORES', 'VIDA'],
-            'Distelsa': ['VEHICULOS AUTOMOTORES', 'DESEMPLEO', 'VIDA'],
-            'Finca': ['DESEMPLEO', 'PARAMÉTRICO', 'VIDA'],
-            'Guadalupana': ['INCENDIO Y LINEAS ALIADAS', 'VEHICULOS AUTOMOTORES', 'ACCIDENTES', 'VIDA'],
-            'Jarfesa': ['ACCIDENTES', 'VIDA'],
-            'MINDEF': ['VEHICULOS AUTOMOTORES', 'VIDA'],
-            'Otras cuentas': ['VEHICULOS AUTOMOTORES', 'ACCIDENTES', 'PARAMÉTRICO', 'VIDA'],
-            'Sostengo': ['VEHICULOS AUTOMOTORES', 'VIDA'],
-            'TIGO': ['SEGURO TECNICO', 'VIDA'],
-            'Venta Directa': ['INCENDIO Y LINEAS ALIADAS', 'VEHICULOS AUTOMOTORES', 'TRANSPORTE', 'ACCIDENTES', 
-                             'RESPONSABILIDAD CIVIL', 'AVIACION', 'SEGURO TECNICO', 'ROBO', 'DINERO Y/O VALORES', 
-                             'MARITIMOS', 'SEGURO OBLIGATORIO', 'VIDA']
-        };
+    let records = JSON.parse(localStorage.getItem('medicalRecordsApp')) || [];
+    let recordIdToDelete = null;
+    let currentEditId = null;
 
-        // Participación por Sub Ramo
-        const ramoParticipacion = {
-            'VIDA': 40.96,
-            'VEHICULOS AUTOMOTORES': 35.37,
-            'SEGURO TECNICO': 10.56,
-            'ACCIDENTES': 4.86,
-            'DESEMPLEO': 4.51,
-            'PARAMÉTRICO': 1.65,
-            'INCENDIO Y LINEAS ALIADAS': 1.52,
-            'AVIACION': 0.31,
-            'RESPONSABILIDAD CIVIL': 0.21,
-            'TRANSPORTE': 0.06,
-            'ROBO': 0.03,
-            'DINERO Y/O VALORES': 0.00,
-            'SEGURO OBLIGATORIO': 0.00,
-            'MARITIMOS': -0.03
-        };
+    // Nombres base de los campos, para consistencia en el objeto record y la construcción de IDs de edición
+    const ALL_FORM_FIELDS = [
+        'codigoJornada',
+        'tipoEvento', 'especialidad', 'tipoConsulta', 'noMenoresAtendidos', 'noMayoresAtendidos',
+        'primerNombre', 'segundoNombre', 'primerApellido', 'segundoApellido', 'apellidoCasada',
+        'dpi', 'telefono', 'sexo', 'idioma', 'fechaNacimiento', 'departamento', 'municipio',
+        'correo', 'nit', 'comoEntero', 'ocupacion'
+    ];
 
-        // Datos de mercado × sub ramo
-        const mercadoRamoData = {
-            'VIDA': {'BANCA': 69.26, 'COMERCIALIZADOR': 91.25, 'CONCESONARIO': 26.23, 'COPERATIVA': 78.48, 
-                     'FINANCIERA': 97.20, 'GOBIERNO': 100, 'OTROS CANALES': 87.66, 'Tienda de retail': 3.57, 'VENTA DIRECTA': 0.50},
-            'VEHICULOS AUTOMOTORES': {'APPS/WEB': 100, 'CONCESONARIO': 73.77, 'COPERATIVA': 8.06, 'OTROS CANALES': 11.12, 
-                                     'Tienda de retail': 93.52, 'VENTA DIRECTA': 41.60},
-            'SEGURO TECNICO': {'TELEFONIA': 100, 'VENTA DIRECTA': 0.76},
-            'ACCIDENTES': {'BANCA': 1.50, 'COMERCIALIZADOR': 8.75, 'COPERATIVA': 1.73, 'OTROS CANALES': 1.22, 'VENTA DIRECTA': 47.44},
-            'DESEMPLEO': {'BANCA': 19.03, 'FINANCIERA': 0.25, 'Tienda de retail': 2.92},
-            'PARAMÉTRICO': {'BANCA': 6.64, 'FINANCIERA': 2.55},
-            'INCENDIO Y LINEAS ALIADAS': {'BANCA': 3.41, 'COPERATIVA': 11.73, 'VENTA DIRECTA': 3.15},
-            'AVIACION': {'VENTA DIRECTA': 3.49},
-            'RESPONSABILIDAD CIVIL': {'VENTA DIRECTA': 2.35},
-            'TRANSPORTE': {'VENTA DIRECTA': 0.65},
-            'ROBO': {'VENTA DIRECTA': 0.39},
-            'DINERO Y/O VALORES': {'VENTA DIRECTA': 0.04},
-            'SEGURO OBLIGATORIO': {'VENTA DIRECTA': 0.02}
-        };
+    function showAlert(message, type = 'success', duration = 3000) {
+        alertMessageDiv.textContent = message;
+        alertMessageDiv.className = `alert alert-${type}`;
+        alertMessageDiv.style.display = 'block';
+        setTimeout(() => {
+            alertMessageDiv.style.display = 'none';
+        }, duration);
+    }
 
-        // ========== VISUALIZACIÓN 1: SANKEY COMPLETO ==========
-        function createSankeyCompleto() {
-            const nodes = [];
-            const links = [];
-            const nodeMap = {};
-            let nodeIndex = 0;
-
-            // Crear nodos para Centros de Costo
-            Object.keys(produccionData).forEach(centro => {
-                nodeMap[centro] = nodeIndex;
-                nodes.push({name: centro, color: '#95a5a6'});
-                nodeIndex++;
-            });
-
-            // Crear nodos para Sub Ramos
-            const ramos = [...new Set(Object.values(conexiones).flat())];
-            ramos.forEach(ramo => {
-                nodeMap[ramo] = nodeIndex;
-                nodes.push({name: ramo, color: ramoColors[ramo] || '#bdc3c7'});
-                nodeIndex++;
-            });
-
-            // Crear nodos para Mercados
-            const mercados = ['BANCA', 'COMERCIALIZADOR', 'CONCESONARIO', 'COPERATIVA', 'FINANCIERA', 
-                            'GOBIERNO', 'OTROS CANALES', 'TELEFONIA', 'Tienda de retail', 'VENTA DIRECTA', 'APPS/WEB'];
-            mercados.forEach(mercado => {
-                nodeMap[mercado] = nodeIndex;
-                nodes.push({name: mercado, color: '#7f8c8d'});
-                nodeIndex++;
-            });
-
-            // Crear links Centro → Ramo
-            Object.entries(conexiones).forEach(([centro, ramos]) => {
-                const produccionCentro = produccionData[centro];
-                ramos.forEach(ramo => {
-                    const participacionRamo = ramoParticipacion[ramo] || 1;
-                    const valor = (produccionCentro * participacionRamo / 100) / ramos.length;
-                    links.push({
-                        source: nodeMap[centro],
-                        target: nodeMap[ramo],
-                        value: Math.max(valor, 0.1),
-                        color: ramoColors[ramo] ? ramoColors[ramo] + '50' : 'rgba(189, 195, 199, 0.3)',
-                        ramo: ramo
-                    });
-                });
-            });
-
-            // Crear links Ramo → Mercado
-            Object.entries(mercadoRamoData).forEach(([ramo, mercados]) => {
-                Object.entries(mercados).forEach(([mercado, porcentaje]) => {
-                    if (porcentaje > 0) {
-                        const participacionRamo = ramoParticipacion[ramo] || 1;
-                        const totalProduccion = 148;
-                        const valor = (totalProduccion * participacionRamo / 100) * (porcentaje / 100);
-                        links.push({
-                            source: nodeMap[ramo],
-                            target: nodeMap[mercado],
-                            value: Math.max(valor, 0.1),
-                            color: ramoColors[ramo] ? ramoColors[ramo] + '50' : 'rgba(189, 195, 199, 0.3)',
-                            ramo: ramo
-                        });
-                    }
-                });
-            });
-
-            const data = [{
-                type: "sankey",
-                orientation: "h",
-                node: {
-                    pad: 15,
-                    thickness: 20,
-                    line: {color: "black", width: 0.5},
-                    label: nodes.map(n => n.name),
-                    color: nodes.map(n => n.color),
-                    customdata: nodes.map(n => n.name),
-                    hovertemplate: '<b>%{customdata}</b><br>Producción: Q.%{value:.2f}M<extra></extra>'
-                },
-                link: {
-                    source: links.map(l => l.source),
-                    target: links.map(l => l.target),
-                    value: links.map(l => l.value),
-                    color: links.map(l => l.color),
-                    customdata: links.map(l => l.ramo || 'Flujo'),
-                    hovertemplate: '<b>%{customdata}</b><br>Flujo: Q.%{value:.2f}M<extra></extra>'
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const targetTabContentId = tab.getAttribute('data-tab');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+                if (content.id === targetTabContentId) {
+                    content.classList.add('active');
                 }
-            }];
+            });
+            if (targetTabContentId === 'registros') {
+                renderTable();
+            }
+        });
+    });
 
-            const layout = {
-                title: "",
-                font: {size: 11, family: 'Segoe UI'},
-                height: 850,
-                margin: {l: 10, r: 10, t: 20, b: 20}
-            };
+    function openModal(modalElement) {
+        modalElement.style.display = 'flex';
+    }
 
-            Plotly.newPlot('sankeyCompleto', data, layout, {responsive: true});
+    function closeModal(modalElement) {
+        modalElement.style.display = 'none';
+    }
+
+    closeModalButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const modalId = button.getAttribute('data-modal-id');
+            if (modalId) closeModal(document.getElementById(modalId));
+            else closeModal(button.closest('.modal'));
+        });
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target.classList.contains('modal')) closeModal(event.target);
+    });
+    
+    function saveRecordsToLocalStorage() {
+        localStorage.setItem('medicalRecordsApp', JSON.stringify(records));
+    }
+
+    function renderTable() {
+        recordsTableBody.innerHTML = '';
+        if (records.length === 0) {
+            noRecordsMessage.style.display = 'block';
+            recordsTable.style.display = 'none';
+            return;
+        }
+        noRecordsMessage.style.display = 'none';
+        recordsTable.style.display = 'table';
+
+        records.forEach(record => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${record.id.slice(-6)}</td>
+                <td>${record.codigoJornada || ''}</td>
+                <td>${record.primerNombre || ''} ${record.segundoNombre || ''}</td>
+                <td>${record.primerApellido || ''} ${record.segundoApellido || ''}</td>
+                <td>${record.dpi || ''}</td>
+                <td>${record.telefono || ''}</td>
+                <td>${record.tipoEvento || ''}</td>
+                <td>${record.especialidad || ''}</td>
+                <td class="action-buttons">
+                    <button class="btn btn-sm btn-warning edit-btn" data-id="${record.id}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    <button class="btn btn-sm btn-danger delete-btn" data-id="${record.id}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
+                </td>
+            `;
+            recordsTableBody.appendChild(tr);
+        });
+
+        document.querySelectorAll('.edit-btn').forEach(button => {
+            button.addEventListener('click', (e) => handleEdit(e.currentTarget.dataset.id));
+        });
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', (e) => handleDeleteOne(e.currentTarget.dataset.id));
+        });
+    }
+
+    // --- Lógica para habilitar/deshabilitar campos de No. Atendidos ---
+    function updateAtendidosFieldsState(formType) {
+        const form = (formType === 'main') ? medicalForm : editForm;
+        const tipoConsultaName = (formType === 'main') ? 'tipoConsulta' : 'editTipoConsulta';
+        const noMenoresId = (formType === 'main') ? 'noMenoresAtendidos' : 'editNoMenoresAtendidos';
+        const noMayoresId = (formType === 'main') ? 'noMayoresAtendidos' : 'editNoMayoresAtendidos';
+
+        const tipoConsultaValue = form.querySelector(`input[name="${tipoConsultaName}"]:checked`)?.value;
+        const menoresField = form.querySelector(`#${noMenoresId}`);
+        const mayoresField = form.querySelector(`#${noMayoresId}`);
+
+        if (!menoresField || !mayoresField) return;
+
+        if (tipoConsultaValue === 'INDIVIDUAL') {
+            menoresField.disabled = true;
+            menoresField.value = '0'; 
+            mayoresField.disabled = false;
+        } else if (tipoConsultaValue === 'FAMILIAR') {
+            menoresField.disabled = false;
+            mayoresField.disabled = false;
+        } else { 
+            menoresField.disabled = true;
+            mayoresField.disabled = true;
+            menoresField.value = '0';
+            mayoresField.value = '0'; // Opcional: '1' si INDIVIDUAL es el default más común
+        }
+    }
+
+    // Listeners para cambio de tipoConsulta
+    medicalForm.querySelectorAll('input[name="tipoConsulta"]').forEach(radio => {
+        radio.addEventListener('change', () => updateAtendidosFieldsState('main'));
+    });
+    editForm.querySelectorAll('input[name="editTipoConsulta"]').forEach(radio => {
+        radio.addEventListener('change', () => updateAtendidosFieldsState('edit'));
+    });
+
+
+    medicalForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const record = { id: Date.now().toString() };
+        
+        ALL_FORM_FIELDS.forEach(fieldKey => {
+            const fieldElement = medicalForm.elements[fieldKey];
+            if (fieldElement) {
+                 if (fieldElement.type === 'radio') {
+                    const checkedRadio = medicalForm.querySelector(`input[name="${fieldKey}"]:checked`);
+                    if (checkedRadio) record[fieldKey] = checkedRadio.value;
+                } else if (fieldElement.nodeName === 'SELECT' && fieldElement.disabled) {
+                    record[fieldKey] = fieldElement.value; // Guardar valor aunque esté disabled (ej. '0' para noMenoresAtendidos)
+                } else {
+                    record[fieldKey] = fieldElement.value;
+                }
+            }
+        });
+        
+        records.push(record);
+        saveRecordsToLocalStorage();
+        showAlert('Registro guardado exitosamente!');
+        medicalForm.reset();
+        // Estado inicial de radio buttons tras reset
+        medicalForm.querySelector('input[name="tipoConsulta"][value="INDIVIDUAL"]').checked = true;
+        updateAtendidosFieldsState('main'); // Re-aplicar disabled states
+        
+        if (document.querySelector('.tab[data-tab="registros"]').classList.contains('active')) {
+            renderTable();
+        }
+    });
+
+    resetFormBtn.addEventListener('click', () => {
+        medicalForm.reset();
+        medicalForm.querySelector('input[name="tipoConsulta"][value="INDIVIDUAL"]').checked = true;
+        updateAtendidosFieldsState('main'); // Re-aplicar disabled states
+        showAlert('Formulario limpiado.', 'info');
+    });
+
+    function handleEdit(id) {
+        const recordToEdit = records.find(r => r.id === id);
+        if (!recordToEdit) return;
+
+        currentEditId = id;
+        document.getElementById('editId').value = id;
+
+        ALL_FORM_FIELDS.forEach(fieldKey => {
+            const editFieldName = `edit${fieldKey.charAt(0).toUpperCase() + fieldKey.slice(1)}`;
+            const editFieldElement = editForm.elements[editFieldName]; // e.g. editPrimerNombre
+
+            if (editFieldElement) {
+                 if (editFieldElement.type === 'radio') {
+                    // Se maneja abajo con querySelectorAll
+                } else {
+                    editFieldElement.value = recordToEdit[fieldKey] || '';
+                }
+            } else if (fieldKey === 'noMenoresAtendidos' || fieldKey === 'noMayoresAtendidos') {
+                // Casos especiales para los campos renombrados en el form de edición
+                const specificEditField = editForm.elements[`edit${fieldKey.charAt(0).toUpperCase() + fieldKey.slice(1)}`];
+                if (specificEditField) specificEditField.value = recordToEdit[fieldKey] || '0';
+            }
+        });
+        
+        // Manejar Radio Groups para el formulario de edición
+        ['tipoConsulta'].forEach(name => {
+            const editRadioName = `edit${name.charAt(0).toUpperCase() + name.slice(1)}`;
+            const value = recordToEdit[name];
+            if (value) {
+                const radioToSelect = editForm.querySelector(`input[name="${editRadioName}"][value="${value}"]`);
+                if (radioToSelect) radioToSelect.checked = true;
+            } else { // Si no hay valor, deseleccionar todos o seleccionar uno por defecto
+                 editForm.querySelectorAll(`input[name="${editRadioName}"]`).forEach(r => r.checked = false);
+                 // Opcional: seleccionar un default si es necesario
+            }
+        });
+        
+        updateAtendidosFieldsState('edit'); // Aplicar estado de habilitado/deshabilitado
+        openModal(editRecordModal);
+    }
+
+    editForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const updatedRecord = { id: currentEditId };
+
+        ALL_FORM_FIELDS.forEach(fieldKey => {
+            const editFieldName = `edit${fieldKey.charAt(0).toUpperCase() + fieldKey.slice(1)}`;
+            const editFieldElement = editForm.elements[editFieldName];
+
+            if (editFieldElement) {
+                if (editFieldElement.type === 'radio') {
+                    const checkedRadio = editForm.querySelector(`input[name="${editFieldName}"]:checked`);
+                    if (checkedRadio) updatedRecord[fieldKey] = checkedRadio.value;
+                } else if (editFieldElement.nodeName === 'SELECT' && editFieldElement.disabled) {
+                     updatedRecord[fieldKey] = editFieldElement.value;
+                }else {
+                     updatedRecord[fieldKey] = editFieldElement.value;
+                }
+            } else if (fieldKey === 'noMenoresAtendidos' || fieldKey === 'noMayoresAtendidos') {
+                 // Casos especiales para los campos renombrados
+                const specificEditField = editForm.elements[`edit${fieldKey.charAt(0).toUpperCase() + fieldKey.slice(1)}`];
+                if (specificEditField) updatedRecord[fieldKey] = specificEditField.value;
+            }
+        });
+        
+        records = records.map(r => r.id === currentEditId ? { ...r, ...updatedRecord } : r);
+        saveRecordsToLocalStorage();
+        renderTable();
+        closeModal(editRecordModal);
+        showAlert('Registro actualizado exitosamente!');
+    });
+
+    resetDataBtn.addEventListener('click', () => {
+        if (records.length === 0) {
+            showAlert('No hay registros para borrar.', 'info');
+            return;
+        }
+        openModal(confirmDeleteAllModal);
+    });
+
+    cancelDeleteAllBtn.addEventListener('click', () => closeModal(confirmDeleteAllModal));
+
+    confirmDeleteAllActionBtn.addEventListener('click', () => {
+        records = [];
+        saveRecordsToLocalStorage();
+        renderTable();
+        closeModal(confirmDeleteAllModal);
+        showAlert('Todos los registros han sido eliminados.', 'success');
+    });
+
+    function handleDeleteOne(id) {
+        recordIdToDelete = id;
+        openModal(confirmDeleteRecordModal);
+    }
+
+    cancelDeleteRecordBtn.addEventListener('click', () => {
+        recordIdToDelete = null;
+        closeModal(confirmDeleteRecordModal);
+    });
+
+    confirmDeleteRecordActionBtn.addEventListener('click', () => {
+        if (!recordIdToDelete) return;
+        records = records.filter(r => r.id !== recordIdToDelete);
+        saveRecordsToLocalStorage();
+        renderTable();
+        closeModal(confirmDeleteRecordModal);
+        showAlert('Registro eliminado.', 'success');
+        recordIdToDelete = null;
+    });
+
+    exportExcelBtn.addEventListener('click', () => {
+        if (records.length === 0) {
+            showAlert('No hay registros para exportar.', 'info');
+            return;
         }
 
-        // Crear visualización al cargar
-        window.onload = function() {
-            createSankeyCompleto();
+        // Función para obtener el nombre del canal según el código
+        const getNombreCanal = (codigo) => {
+            const canales = {
+                '001': 'Banco de Antigua',
+                '002': 'Finca',
+                '003': 'PPEM',
+                '004': 'SIN ASIGNAR',
+                '005': 'SIN ASIGNAR',
+                '006': 'SIN ASIGNAR',
+                '007': 'SIN ASIGNAR',
+                '008': 'SIN ASIGNAR',
+                '009': 'SIN ASIGNAR'
+            };
+            return canales[codigo] || '';
         };
-    </script>
+
+        // Obtener fecha actual
+        const fechaActual = new Date();
+        const fechaFormateada = `${String(fechaActual.getDate()).padStart(2,'0')}/${String(fechaActual.getMonth()+1).padStart(2,'0')}/${fechaActual.getFullYear()}`;
+
+        const dataToExport = records.map(record => {
+            const exportRecord = {};
+            
+            // PRIMERO: Agregar fecha y código de jornada
+            exportRecord['Fecha'] = fechaFormateada;
+            exportRecord['Código Jornada'] = record.codigoJornada || '';
+            exportRecord['Canal'] = getNombreCanal(record.codigoJornada);
+            
+            // LUEGO: Agregar el resto de campos en orden
+            const headers = {
+                id: 'ID', tipoEvento: 'Tipo Evento', especialidad: 'Especialidad', 
+                tipoConsulta: 'Tipo Consulta', noMenoresAtendidos: 'No. Menores Atendidos', 
+                noMayoresAtendidos: 'No. Mayores Atendidos', primerNombre: 'Primer Nombre', 
+                segundoNombre: 'Segundo Nombre', primerApellido: 'Primer Apellido', 
+                segundoApellido: 'Segundo Apellido', apellidoCasada: 'Apellido Casada', 
+                dpi: 'DPI', telefono: 'Teléfono', sexo: 'Sexo', idioma: 'Idioma', 
+                fechaNacimiento: 'Fecha Nacimiento', departamento: 'Departamento', 
+                municipio: 'Municipio', correo: 'Correo', nit: 'NIT', 
+                comoEntero: 'Cómo se Enteró', ocupacion: 'Ocupación'
+            };
+            
+            for (const key in headers) {
+                if (Object.hasOwnProperty.call(headers, key)) {
+                    exportRecord[headers[key]] = record[key] !== undefined ? record[key] : '';
+                }
+            }
+            return exportRecord;
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "RegistrosMedicos");
+        
+        const date = new Date();
+        const filename = `RegistrosMedicos_${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}.xlsx`;
+        XLSX.writeFile(workbook, filename);
+        showAlert('Datos exportados a Excel.', 'success');
+    });
+
+    // Initial setup
+    renderTable(); 
+    updateAtendidosFieldsState('main'); // Estado inicial de campos dependientes
+    if (tabs.length > 0) {
+        tabs[0].click(); 
+    }
+});
+</script>
+
 </body>
 </html>
