@@ -1,1265 +1,1017 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScreenCapture Pro - Documentador Automático</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #0f172a;
-            min-height: 100vh;
-            padding: 0;
-            color: #1e293b;
-        }
-
-        .app-container {
-            display: grid;
-            grid-template-columns: 350px 1fr;
-            min-height: 100vh;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            background: linear-gradient(180deg, #1e40af 0%, #1e3a8a 100%);
-            padding: 30px;
-            color: white;
-            box-shadow: 4px 0 20px rgba(0,0,0,0.3);
-            overflow-y: auto;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 40px;
-            padding-bottom: 25px;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .logo-icon {
-            width: 45px;
-            height: 45px;
-            background: white;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-        }
-
-        .logo-text h1 {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 2px;
-        }
-
-        .logo-text p {
-            font-size: 12px;
-            opacity: 0.8;
-            font-weight: 300;
-        }
-
-        .section-title {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.7;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 13px;
-            font-weight: 500;
-            opacity: 0.9;
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 12px 14px;
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 8px;
-            font-size: 14px;
-            background: rgba(255,255,255,0.1);
-            color: white;
-            transition: all 0.3s;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .form-group input::placeholder {
-            color: rgba(255,255,255,0.5);
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            background: rgba(255,255,255,0.15);
-            border-color: rgba(255,255,255,0.4);
-        }
-
-        .form-group select option {
-            background: #1e40af;
-            color: white;
-        }
-
-        .action-buttons {
-            margin-top: 30px;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 14px 20px;
-            font-size: 14px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-bottom: 10px;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .btn-primary {
-            background: #10b981;
-            color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            background: #059669;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
-        }
-
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-        }
-
-        .btn-danger:hover:not(:disabled) {
-            background: #dc2626;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
-        }
-
-        .btn-secondary {
-            background: rgba(255,255,255,0.15);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .btn-secondary:hover:not(:disabled) {
-            background: rgba(255,255,255,0.25);
-            transform: translateY(-2px);
-        }
-
-        .btn-export {
-            background: white;
-            color: #1e40af;
-        }
-
-        .btn-export:hover:not(:disabled) {
-            background: #f0f9ff;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(255, 255, 255, 0.3);
-        }
-
-        /* Main Content */
-        .main-content {
-            background: #f8fafc;
-            overflow-y: auto;
-        }
-
-        .content-header {
-            background: white;
-            padding: 25px 40px;
-            border-bottom: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        .content-header h2 {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 5px;
-        }
-
-        .content-header p {
-            color: #64748b;
-            font-size: 14px;
-        }
-
-        .status-bar {
-            background: white;
-            padding: 20px 40px;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            gap: 30px;
-            align-items: center;
-        }
-
-        .status-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        .status-dot.recording {
-            background: #ef4444;
-        }
-
-        .status-dot.idle {
-            background: #94a3b8;
-            animation: none;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        .status-text {
-            font-weight: 600;
-            font-size: 14px;
-            color: #475569;
-        }
-
-        .status-value {
-            font-weight: 700;
-            font-size: 18px;
-            color: #1e40af;
-        }
-
-        .content-body {
-            padding: 30px 40px;
-        }
-
-        .info-banner {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
-            padding: 20px 25px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            display: flex;
-            align-items: start;
-            gap: 15px;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-        }
-
-        .info-banner-icon {
-            font-size: 28px;
-            flex-shrink: 0;
-        }
-
-        .info-banner-content h3 {
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-
-        .info-banner-content p {
-            font-size: 13px;
-            opacity: 0.95;
-            line-height: 1.6;
-        }
-
-        .steps-section {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            overflow: hidden;
-        }
-
-        .steps-header {
-            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
-            color: white;
-            padding: 20px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .steps-header h3 {
-            font-size: 18px;
-            font-weight: 700;
-        }
-
-        .step-badge {
-            background: rgba(255,255,255,0.2);
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 13px;
-        }
-
-        .steps-list {
-            padding: 20px;
-        }
-
-        .step-card {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 25px;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .step-card:hover {
-            border-color: #3b82f6;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
-            transform: translateX(3px);
-        }
-
-        .step-card-header {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-            align-items: start;
-        }
-
-        .step-number-badge {
-            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
-            color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 20px;
-            flex-shrink: 0;
-            box-shadow: 0 4px 10px rgba(30, 64, 175, 0.3);
-        }
-
-        .step-meta {
-            flex: 1;
-        }
-
-        .step-timestamp {
-            color: #64748b;
-            font-size: 12px;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        .step-description-input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 500;
-            color: #1e293b;
-            transition: all 0.3s;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .step-description-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-            background: #f0f9ff;
-        }
-
-        .step-image-container {
-            border-radius: 8px;
-            overflow: hidden;
-            border: 2px solid #e2e8f0;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .step-image-container:hover {
-            border-color: #3b82f6;
-            transform: scale(1.01);
-        }
-
-        .step-screenshot {
-            width: 100%;
-            display: block;
-        }
-
-        .step-actions {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-small {
-            padding: 8px 16px;
-            font-size: 13px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .btn-delete {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        .btn-delete:hover {
-            background: #fecaca;
-            transform: translateY(-1px);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 80px 20px;
-            color: #94a3b8;
-        }
-
-        .empty-icon {
-            font-size: 80px;
-            margin-bottom: 20px;
-            opacity: 0.5;
-        }
-
-        .empty-state h3 {
-            font-size: 22px;
-            margin-bottom: 10px;
-            color: #475569;
-            font-weight: 700;
-        }
-
-        .empty-state p {
-            font-size: 15px;
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(4px);
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            max-width: 90%;
-            max-height: 90%;
-            position: relative;
-            animation: modalZoom 0.3s ease;
-        }
-
-        @keyframes modalZoom {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .modal-content img {
-            max-width: 100%;
-            max-height: 90vh;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-        }
-
-        .modal-close {
-            position: absolute;
-            top: -50px;
-            right: 0;
-            background: white;
-            border: none;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 24px;
-            font-weight: 300;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
-
-        .modal-close:hover {
-            transform: rotate(90deg);
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        /* Loading */
-        .loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.85);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(8px);
-        }
-
-        .loading-overlay.active {
-            display: flex;
-        }
-
-        .loading-card {
-            background: white;
-            padding: 50px 60px;
-            border-radius: 16px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-        }
-
-        .spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid #e5e7eb;
-            border-top: 4px solid #1e40af;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 25px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .loading-card h2 {
-            font-size: 22px;
-            margin-bottom: 10px;
-            color: #1e293b;
-            font-weight: 700;
-        }
-
-        .loading-card p {
-            color: #64748b;
-            font-size: 14px;
-        }
-
-        @media (max-width: 1024px) {
-            .app-container {
-                grid-template-columns: 1fr;
-            }
-            
-            .sidebar {
-                position: relative;
-            }
-        }
-    </style>
-</head>
+<html lang="en">
+<meta charset="UTF-8" />
+<title>VibeVoice-Realtime TTS Demo</title>
+<style>
+  :root {
+    --bg: #f5f7fc;
+    --surface: #ffffff;
+    --accent: #5562ff;
+    --accent-strong: #3f4dff;
+    --text-primary: #1f2742;
+    --text-muted: #5d6789;
+    --border: rgba(85, 98, 255, 0.18);
+    --shadow: 0 18px 45px rgba(31, 39, 66, 0.08);
+  }
+
+  .helper-text {
+    font-size: 12px;
+    color: #8a93b5;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, sans-serif;
+    color: var(--text-primary);
+    display: flex;
+    justify-content: center;
+    padding: 48px 20px;
+  }
+
+  .app-shell {
+    width: min(960px, 100%);
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 36px 40px 44px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  h1 {
+    margin: 0;
+    text-align: center;
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+
+  .panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .field-label {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text-primary);
+  }
+
+  .text-input {
+    width: 100%;
+    min-height: 140px;
+    max-height: 240px;
+    border: 1px solid rgba(31, 39, 66, 0.14);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 15px;
+    line-height: 1.6;
+    font-family: inherit;
+    background: #f9faff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    resize: vertical;
+  }
+
+  .text-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(85, 98, 255, 0.18);
+    background: #fff;
+  }
+
+  #streamingPreviewContainer {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, #eef2ff 0%, #f7f9ff 100%);
+    padding: 18px 20px;
+    box-shadow: inset 0 1px 2px rgba(85, 98, 255, 0.12);
+  }
+
+  #streamingPreviewHeader {
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  #streamingPreviewNote {
+    font-weight: 400;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  #streamingPreview {
+    min-height: 70px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(85, 98, 255, 0.25);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+  }
+
+  #streamingPreview.streaming-active::after {
+    content: "";
+    display: inline-block;
+    width: 2px;
+    height: 1.1em;
+    background: var(--accent);
+    margin-left: 2px;
+    animation: previewCaret 0.9s steps(1) infinite;
+    vertical-align: bottom;
+  }
+
+  @keyframes previewCaret {
+    0%, 50% {
+      opacity: 1;
+    }
+    51%, 100% {
+      opacity: 0;
+    }
+  }
+
+  .control-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .inline-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .select-control {
+    width: 220px;
+    border: 1px solid rgba(31, 39, 66, 0.14);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fbfcff;
+    color: var(--text-primary);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .select-control:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(85, 98, 255, 0.18);
+    background: #fff;
+  }
+
+  .control-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px 28px;
+  }
+
+  .range-control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--text-primary);
+  }
+
+  .range-control input[type="range"] {
+    width: 200px;
+    accent-color: var(--accent);
+  }
+
+  .range-value {
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 42px;
+    text-align: right;
+  }
+
+  #playback {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    box-shadow: 0 8px 16px rgba(85, 98, 255, 0.25);
+    transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+  }
+
+  #playback:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(85, 98, 255, 0.28);
+  }
+
+  #playback:active {
+    transform: translateY(0);
+  }
+
+  #playback.playing {
+    background: var(--accent-strong);
+  }
+
+  .secondary-btn {
+    border: 1px solid rgba(31, 39, 66, 0.18);
+    background: #f1f3ff;
+    color: var(--text-primary);
+    padding: 8px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .secondary-btn:hover {
+    background: #e6e9ff;
+    border-color: rgba(31, 39, 66, 0.26);
+  }
+
+  .secondary-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 32px;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .metrics span {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .metrics span strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .metric-unit {
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  #logOutput {
+    max-height: 260px;
+    overflow-y: auto;
+    background: #f7f9ff;
+    color: var(--text-primary);
+    padding: 16px 18px;
+    border: 1px solid rgba(31, 39, 66, 0.12);
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.6;
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06);
+    font-family: 'Fira Code', 'Courier New', Courier, monospace;
+    margin-top: 0px;
+  }
+
+  @media (max-width: 720px) {
+    .app-shell {
+      padding: 28px 20px 36px;
+      gap: 24px;
+    }
+
+    .select-control {
+      width: 100%;
+    }
+
+    .control-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    #playback {
+      width: 100%;
+      text-align: center;
+    }
+  }
+</style>
 <body>
-    <div class="app-container">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="logo">
-                <div class="logo-icon">📸</div>
-                <div class="logo-text">
-                    <h1>ScreenCapture Pro</h1>
-                    <p>Documentación Automática</p>
-                </div>
-            </div>
+  <div class="app-shell">
+    <h1>VibeVoice-Realtime TTS Demo</h1>
 
-            <div class="section-title">Configuración del Documento</div>
-            
-            <div class="form-group">
-                <label for="guideTitle">Título del Documento</label>
-                <input type="text" id="guideTitle" placeholder="Ej: Manual de Usuario">
-            </div>
-            
-            <div class="form-group">
-                <label for="captureInterval">Intervalo de Captura</label>
-                <select id="captureInterval">
-                    <option value="2">Cada 2 segundos</option>
-                    <option value="3" selected>Cada 3 segundos</option>
-                    <option value="5">Cada 5 segundos</option>
-                    <option value="10">Cada 10 segundos</option>
-                    <option value="15">Cada 15 segundos</option>
-                    <option value="30">Cada 30 segundos</option>
-                </select>
-            </div>
+    <section class="panel">
+      <label class="field">
+        <span class="field-label">Text</span>
+        <textarea
+          id="prompt"
+          class="text-input"
+          rows="4"
+        >Enter your text here and click "Start" to instantly hear the VibeVoice-Realtime TTS output audio.</textarea>
+      </label>
 
-            <div class="section-title" style="margin-top: 30px;">Controles de Grabación</div>
-            
-            <div class="action-buttons">
-                <button class="btn btn-primary" id="startBtn">
-                    ▶️ Iniciar Captura
-                </button>
-                <button class="btn btn-danger" id="stopBtn" disabled>
-                    ⏹️ Detener Captura
-                </button>
-                <button class="btn btn-secondary" id="manualCaptureBtn" disabled>
-                    📷 Captura Manual
-                </button>
-            </div>
-
-            <div class="section-title" style="margin-top: 30px;">Exportar Documento</div>
-            
-            <div class="action-buttons">
-                <button class="btn btn-export" id="exportPdfBtn" disabled>
-                    📄 Descargar PDF
-                </button>
-                <button class="btn btn-secondary" id="exportHtmlBtn" disabled>
-                    🌐 Descargar HTML
-                </button>
-                <button class="btn btn-secondary" id="clearBtn">
-                    🗑️ Limpiar Todo
-                </button>
-            </div>
+      <div id="streamingPreviewContainer">
+        <div id="streamingPreviewHeader">
+          <span>Streaming Input Text</span>
         </div>
+        <div id="streamingPreview" aria-live="polite">This area will display the streaming input text in real time.</div>
+      </div>
+    </section>
+          <span class="helper-text">This demo requires the full text to be provided upfront. The model then receives the text via streaming input during synthesis.<br>
+            For non-punctuation special characters, applying text normalization before processing often yields better results.</span>
+          
+    <section class="panel control-panel">
+      <div class="inline-field">
+        <span class="field-label">Speaker</span>
+        <select id="voiceSelect" class="select-control">
+          <option value="">Loading...</option>
+        </select>
+      </div>
 
-        <!-- Main Content -->
-        <div class="main-content">
-            <div class="content-header">
-                <h2>Captura de Pantalla Automática</h2>
-                <p>Documenta tus procesos de forma profesional y automática</p>
-            </div>
+      <div class="control-row">
+        <label class="range-control">
+          <span>CFG</span>
+          <input id="cfgScale" type="range" min="1.3" max="3" step="0.05" value="1.5" />
+          <span class="range-value" id="cfgValue">1.5</span>
+        </label>
+        <label class="range-control">
+          <span>Inference Steps</span>
+          <input id="inferenceSteps" type="range" min="5" max="20" step="1" value="5" />
+          <span class="range-value" id="stepsValue">5</span>
+        </label>
+        <button id="resetControls" type="button" class="secondary-btn">Reset Controls</button>
+      </div>
 
-            <div class="status-bar">
-                <div class="status-item">
-                    <div class="status-dot idle" id="statusDot"></div>
-                    <span class="status-text" id="statusText">Inactivo</span>
-                </div>
-                <div class="status-item">
-                    <span style="font-size: 20px;">⏱️</span>
-                    <span class="status-value" id="timer">00:00</span>
-                </div>
-                <div class="status-item">
-                    <span style="font-size: 20px;">📸</span>
-                    <span class="status-value" id="captureCounter">0</span>
-                </div>
-            </div>
+      <div class="control-row">
+        <button id="playback">Start</button>
+        <button id="saveAudio" type="button" class="secondary-btn" disabled>Save</button>
+      </div>
+    </section>
 
-            <div class="content-body">
-                <div class="info-banner">
-                    <div class="info-banner-icon">💡</div>
-                    <div class="info-banner-content">
-                        <h3>Captura Automática Continua</h3>
-                        <p>Esta aplicación captura tu pantalla automáticamente cada X segundos. Trabaja normalmente en cualquier aplicación y todas las acciones serán documentadas. Al finalizar, exporta todo a un PDF profesional.</p>
-                    </div>
-                </div>
+    <section class="panel">
+      <div class="metrics">
+        <span>Model Generated Audio<strong id="modelGenerated">0.00</strong><span class="metric-unit">s</span></span>
+        <span>Audio Played<strong id="playbackElapsed">0.00</strong><span class="metric-unit">s</span></span>
+      </div>
+    </section>
 
-                <div class="steps-section">
-                    <div class="steps-header">
-                        <h3>Capturas Realizadas</h3>
-                        <span class="step-badge" id="stepCount">0 capturas</span>
-                    </div>
-                    
-                    <div class="steps-list" id="stepsList">
-                        <div class="empty-state">
-                            <div class="empty-icon">🎬</div>
-                            <h3>No hay capturas registradas</h3>
-                            <p>Inicia la captura automática para comenzar a documentar</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <section class="panel">
+      <span class="field-label">Runtime Logs</span>
+      <pre id="logOutput"></pre>
+    </section>
+  </div>
 
-    <!-- Modal Preview -->
-    <div class="modal" id="previewModal">
-        <div class="modal-content">
-            <button class="modal-close" id="closePreview">×</button>
-            <img id="previewImage" src="" alt="Preview">
-        </div>
-    </div>
 
-    <!-- Loading -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-card">
-            <div class="spinner"></div>
-            <h2>Generando PDF...</h2>
-            <p>Procesando todas las capturas</p>
-        </div>
-    </div>
+<script>
+(() => {
+  const SAMPLE_RATE = 24_000;
+  const BUFFER_SIZE = 2048;
+  const PREBUFFER_SEC = 0.1;
 
-    <script>
-        const { jsPDF } = window.jspdf;
+  let audioCtx = null;
+  let scriptNode = null;
+  let socket = null;
+  let buffer = new Float32Array(0);
+  let isPlaying = false;
+  let hasStartedPlayback = false;
+  let silentFrameCount = 0;
 
-        class ScreenCaptureApp {
-            constructor() {
-                this.steps = [];
-                this.isRecording = false;
-                this.mediaStream = null;
-                this.videoElement = null;
-                this.canvas = null;
-                this.ctx = null;
-                this.captureInterval = null;
-                this.timerInterval = null;
-                this.startTime = null;
-                this.captureCount = 0;
-                
-                this.initElements();
-                this.initEventListeners();
-                this.setupCanvas();
-            }
+  const promptInput = document.getElementById('prompt');
+  const streamingPreview = document.getElementById('streamingPreview');
+  const controlBtn = document.getElementById('playback');
+  const cfgSelect = document.getElementById('cfgScale');
+  const stepsSelect = document.getElementById('inferenceSteps');
+  const voiceSelect = document.getElementById('voiceSelect');
+  const cfgValueLabel = document.getElementById('cfgValue');
+  const stepsValueLabel = document.getElementById('stepsValue');
+  const modelGeneratedLabel = document.getElementById('modelGenerated');
+  const playbackElapsedLabel = document.getElementById('playbackElapsed');
+  const logOutput = document.getElementById('logOutput');
+  const resetBtn = document.getElementById('resetControls');
+  const saveBtn = document.getElementById('saveAudio');
 
-            initElements() {
-                this.startBtn = document.getElementById('startBtn');
-                this.stopBtn = document.getElementById('stopBtn');
-                this.manualCaptureBtn = document.getElementById('manualCaptureBtn');
-                this.exportPdfBtn = document.getElementById('exportPdfBtn');
-                this.exportHtmlBtn = document.getElementById('exportHtmlBtn');
-                this.clearBtn = document.getElementById('clearBtn');
-                this.stepsList = document.getElementById('stepsList');
-                this.stepCount = document.getElementById('stepCount');
-                this.statusDot = document.getElementById('statusDot');
-                this.statusText = document.getElementById('statusText');
-                this.guideTitleInput = document.getElementById('guideTitle');
-                this.captureIntervalSelect = document.getElementById('captureInterval');
-                this.timer = document.getElementById('timer');
-                this.captureCounter = document.getElementById('captureCounter');
-                this.previewModal = document.getElementById('previewModal');
-                this.previewImage = document.getElementById('previewImage');
-                this.closePreview = document.getElementById('closePreview');
-                this.loadingOverlay = document.getElementById('loadingOverlay');
-            }
+  let playbackTimer = null;
+  let lastPlaybackElapsed = 0;
+  let playbackSamples = 0;
+  let modelGeneratedTotal = 0;
+  let firstBrowserChunkLogged = false;
+  let playbackStartedLogged = false;
+  const logEntries = [];
+  let logSequence = 0;
+  let recordedChunks = [];
+  let recordedSamples = 0;
+  let recordingComplete = false;
+  let downloadUrl = null;
 
-            initEventListeners() {
-                this.startBtn.addEventListener('click', () => this.startCapture());
-                this.stopBtn.addEventListener('click', () => this.stopCapture());
-                this.manualCaptureBtn.addEventListener('click', () => this.captureManual());
-                this.exportPdfBtn.addEventListener('click', () => this.exportToPdf());
-                this.exportHtmlBtn.addEventListener('click', () => this.exportToHtml());
-                this.clearBtn.addEventListener('click', () => this.clearSteps());
-                this.closePreview.addEventListener('click', () => this.closePreviewModal());
-                this.previewModal.addEventListener('click', (e) => {
-                    if (e.target === this.previewModal) this.closePreviewModal();
-                });
-            }
+  const revokeDownloadUrl = () => {
+    if (downloadUrl) {
+      URL.revokeObjectURL(downloadUrl);
+      downloadUrl = null;
+    }
+  };
 
-            setupCanvas() {
-                this.canvas = document.createElement('canvas');
-                this.ctx = this.canvas.getContext('2d');
-                this.videoElement = document.createElement('video');
-                this.videoElement.autoplay = true;
-            }
+  const updateSaveButtonState = () => {
+    if (!saveBtn) {
+      return;
+    }
+    saveBtn.disabled = recordedSamples === 0 || !recordingComplete;
+  };
 
-            async startCapture() {
-                try {
-                    this.mediaStream = await navigator.mediaDevices.getDisplayMedia({
-                        video: { 
-                            mediaSource: 'screen',
-                            cursor: 'always'
-                        },
-                        audio: false
-                    });
+  const clearRecordedChunks = () => {
+    recordedChunks = [];
+    recordedSamples = 0;
+    recordingComplete = false;
+    revokeDownloadUrl();
+    updateSaveButtonState();
+  };
 
-                    this.videoElement.srcObject = this.mediaStream;
-                    
-                    await new Promise(resolve => {
-                        this.videoElement.onloadedmetadata = () => {
-                            this.videoElement.play();
-                            resolve();
-                        };
-                    });
+  const createWavBlob = () => {
+    if (!recordedSamples) {
+      return null;
+    }
+    const wavBuffer = new ArrayBuffer(44 + recordedSamples * 2);
+    const view = new DataView(wavBuffer);
+    const writeString = (offset, str) => {
+      for (let i = 0; i < str.length; i += 1) {
+        view.setUint8(offset + i, str.charCodeAt(i));
+      }
+    };
 
-                    this.mediaStream.getVideoTracks()[0].addEventListener('ended', () => {
-                        this.stopCapture();
-                    });
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + recordedSamples * 2, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, SAMPLE_RATE, true);
+    view.setUint32(28, SAMPLE_RATE * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    writeString(36, 'data');
+    view.setUint32(40, recordedSamples * 2, true);
 
-                    this.isRecording = true;
-                    this.startTime = Date.now();
-                    this.captureCount = 0;
-                    this.updateUI(true);
-                    this.showStatus('Grabando', true);
+    const pcmData = new Int16Array(wavBuffer, 44, recordedSamples);
+    let offset = 0;
+    recordedChunks.forEach(chunk => {
+      const chunkData = new Int16Array(chunk);
+      pcmData.set(chunkData, offset);
+      offset += chunkData.length;
+    });
+    return new Blob([wavBuffer], { type: 'audio/wav' });
+  };
 
-                    this.startTimer();
-                    this.startAutomaticCapture();
+  const updateCfgDisplay = () => {
+    cfgValueLabel.textContent = Number(cfgSelect.value).toFixed(2);
+  };
 
-                    setTimeout(() => this.captureScreenshot('Captura inicial'), 500);
+  const updateStepsDisplay = () => {
+    stepsValueLabel.textContent = Number(stepsSelect.value).toString();
+  };
 
-                } catch (error) {
-                    console.error('Error al iniciar captura:', error);
-                    alert('❌ No se pudo iniciar la captura. Asegúrate de dar permisos.');
-                }
-            }
+  cfgSelect.addEventListener('input', updateCfgDisplay);
+  stepsSelect.addEventListener('input', updateStepsDisplay);
+  updateCfgDisplay();
+  updateStepsDisplay();
 
-            startTimer() {
-                this.timerInterval = setInterval(() => {
-                    const elapsed = Date.now() - this.startTime;
-                    const minutes = Math.floor(elapsed / 60000);
-                    const seconds = Math.floor((elapsed % 60000) / 1000);
-                    this.timer.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-                }, 1000);
-            }
+  const pad2 = value => value.toString().padStart(2, '0');
+  const pad3 = value => value.toString().padStart(3, '0');
 
-            startAutomaticCapture() {
-                const interval = parseInt(this.captureIntervalSelect.value) * 1000;
-                
-                this.captureInterval = setInterval(() => {
-                    if (this.isRecording) {
-                        this.captureScreenshot(`Paso ${this.captureCount + 1}`);
-                    }
-                }, interval);
-            }
+  const formatLocalTimestamp = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = pad2(d.getMonth() + 1);
+    const day = pad2(d.getDate());
+    const hours = pad2(d.getHours());
+    const minutes = pad2(d.getMinutes());
+    const seconds = pad2(d.getSeconds());
+    const millis = pad3(d.getMilliseconds());
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${millis}`;
+  };
 
-            async captureScreenshot(description = '') {
-                if (!this.mediaStream || !this.videoElement.readyState) return;
+  const formatSeconds = raw => {
+    const value = Number(raw);
+    return Number.isFinite(value) ? value.toFixed(2) : '0.00';
+  };
 
-                try {
-                    const videoTrack = this.mediaStream.getVideoTracks()[0];
-                    const settings = videoTrack.getSettings();
-                    
-                    this.canvas.width = settings.width || this.videoElement.videoWidth;
-                    this.canvas.height = settings.height || this.videoElement.videoHeight;
-                    
-                    this.ctx.drawImage(this.videoElement, 0, 0);
-                    
-                    const screenshot = this.canvas.toDataURL('image/jpeg', 0.85);
-                    
-                    const step = {
-                        id: Date.now(),
-                        timestamp: new Date().toLocaleString('es-GT', {
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit'
-                        }),
-                        description: description || `Paso ${this.steps.length + 1}`,
-                        screenshot: screenshot
-                    };
+  const parseTimestamp = value => {
+    if (!value) {
+      return new Date();
+    }
+    if (/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}/.test(value)) {
+      return new Date(value.replace(' ', 'T'));
+    }
+    return new Date(value);
+  };
 
-                    this.steps.push(step);
-                    this.captureCount++;
-                    this.renderSteps();
-                    this.updateStepCount();
-                    this.updateCaptureCounter();
+  const setModelGenerated = value => {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) {
+      return;
+    }
+    modelGeneratedTotal = Math.max(0, numeric);
+    modelGeneratedLabel.textContent = formatSeconds(modelGeneratedTotal);
+  };
 
-                } catch (error) {
-                    console.error('Error al capturar:', error);
-                }
-            }
+  const setPlaybackElapsed = value => {
+    const capped = Math.min(modelGeneratedTotal, Math.max(0, value));
+    lastPlaybackElapsed = capped;
+    playbackElapsedLabel.textContent = formatSeconds(lastPlaybackElapsed);
+  };
 
-            captureManual() {
-                this.captureScreenshot('📸 Captura manual');
-            }
+  const STREAMING_WPM = 180;
+  const STREAMING_INTERVAL_MS = 60000 / STREAMING_WPM;
+  let previewTimeoutId = null;
+  let previewTokens = [];
+  let previewIndex = 0;
+  let previewActive = false;
 
-            stopCapture() {
-                if (this.captureInterval) {
-                    clearInterval(this.captureInterval);
-                    this.captureInterval = null;
-                }
+  const clearPreviewTimer = () => {
+    if (previewTimeoutId) {
+      clearTimeout(previewTimeoutId);
+      previewTimeoutId = null;
+    }
+  };
 
-                if (this.timerInterval) {
-                    clearInterval(this.timerInterval);
-                    this.timerInterval = null;
-                }
+  const setPreviewIdle = message => {
+    if (!streamingPreview) {
+      return;
+    }
+    streamingPreview.classList.remove('streaming-active');
+    streamingPreview.textContent = message;
+  };
 
-                if (this.mediaStream) {
-                    this.mediaStream.getTracks().forEach(track => track.stop());
-                    this.mediaStream = null;
-                }
-                
-                this.isRecording = false;
-                this.updateUI(false);
-                this.showStatus('Detenido', false);
-            }
+  const schedulePreviewTick = () => {
+    if (!streamingPreview) {
+      return;
+    }
+    if (previewIndex >= previewTokens.length) {
+      streamingPreview.classList.remove('streaming-active');
+      return;
+    }
 
-            updateUI(recording) {
-                this.startBtn.disabled = recording;
-                this.stopBtn.disabled = !recording;
-                this.manualCaptureBtn.disabled = !recording;
-                this.captureIntervalSelect.disabled = recording;
-                this.exportPdfBtn.disabled = this.steps.length === 0;
-                this.exportHtmlBtn.disabled = this.steps.length === 0;
-            }
+    streamingPreview.classList.add('streaming-active');
 
-            showStatus(text, recording) {
-                this.statusText.textContent = text;
-                this.statusDot.className = recording ? 'status-dot recording' : 'status-dot idle';
-            }
+    streamingPreview.textContent += previewTokens[previewIndex];
+    previewIndex += 1;
+    previewTimeoutId = setTimeout(schedulePreviewTick, STREAMING_INTERVAL_MS);
+  };
 
-            updateCaptureCounter() {
-                this.captureCounter.textContent = this.captureCount;
-            }
+  const updateStreamingPreview = () => {
+    if (!streamingPreview) {
+      return;
+    }
+    clearPreviewTimer();
+    previewIndex = 0;
+    const source = (promptInput?.value || '').trimEnd();
+    streamingPreview.textContent = '';
+    previewTokens = source.match(/\S+\s*/g) || [];
+    schedulePreviewTick();
+  };
 
-            renderSteps() {
-                if (this.steps.length === 0) {
-                    this.stepsList.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon">🎬</div>
-                            <h3>No hay capturas registradas</h3>
-                            <p>Inicia la captura automática para comenzar a documentar</p>
-                        </div>
-                    `;
-                    return;
-                }
+  const clearLogs = () => {
+    if (logOutput) {
+      logOutput.textContent = '';
+    }
+    logEntries.length = 0;
+    modelGeneratedTotal = 0;
+    setModelGenerated(0);
+  };
 
-                this.stepsList.innerHTML = this.steps.map((step, index) => `
-                    <div class="step-card" data-step-id="${step.id}">
-                        <div class="step-card-header">
-                            <div class="step-number-badge">${index + 1}</div>
-                            <div class="step-meta">
-                                <div class="step-timestamp">⏰ ${step.timestamp}</div>
-                                <input type="text" 
-                                       class="step-description-input"
-                                       value="${step.description}" 
-                                       placeholder="Descripción del paso..."
-                                       onchange="app.updateStepDescription(${step.id}, this.value)">
-                            </div>
-                        </div>
-                        <div class="step-image-container" onclick="app.showPreview('${step.screenshot}')">
-                            <img src="${step.screenshot}" 
-                                 alt="Captura ${index + 1}" 
-                                 class="step-screenshot">
-                        </div>
-                        <div class="step-actions">
-                            <button class="btn-small btn-delete" onclick="app.deleteStep(${step.id})">
-                                🗑️ Eliminar
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
-            }
+  const appendLog = (message, timestamp) => {
+    if (!logOutput) {
+      return;
+    }
+    const finalTimestamp = timestamp || formatLocalTimestamp();
+    const entry = {
+      timestamp: finalTimestamp,
+      date: parseTimestamp(finalTimestamp),
+      message,
+      seq: logSequence += 1,
+    };
+    logEntries.push(entry);
+    logEntries.sort((a, b) => {
+      const diff = a.date.getTime() - b.date.getTime();
+      return diff !== 0 ? diff : a.seq - b.seq;
+    });
+    if (logEntries.length > 400) {
+      logEntries.splice(0, logEntries.length - 400);
+    }
+    logOutput.textContent = logEntries
+      .map(item => `[${item.timestamp}] ${item.message}`)
+      .join('\n');
+    logOutput.scrollTop = logOutput.scrollHeight;
+  };
 
-            updateStepDescription(stepId, newDescription) {
-                const step = this.steps.find(s => s.id === stepId);
-                if (step) {
-                    step.description = newDescription;
-                }
-            }
+  const handleSaveClick = () => {
+    if (!recordedSamples) {
+      appendLog('[Frontend] Save requested but no audio received yet');
+      return;
+    }
+    const wavBlob = createWavBlob();
+    if (!wavBlob) {
+      appendLog('[Error] Failed to assemble WAV data for download');
+      return;
+    }
+    revokeDownloadUrl();
+    downloadUrl = URL.createObjectURL(wavBlob);
+    const link = document.createElement('a');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    link.href = downloadUrl;
+    link.download = `vibevoice_realtime_audio_${timestamp}.wav`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    appendLog('[Frontend] Audio download triggered');
+  };
 
-            deleteStep(stepId) {
-                if (confirm('¿Eliminar esta captura?')) {
-                    this.steps = this.steps.filter(s => s.id !== stepId);
-                    this.renderSteps();
-                    this.updateStepCount();
-                    this.updateUI(this.isRecording);
-                }
-            }
+  const stopPlaybackTimer = () => {
+    if (playbackTimer) {
+      clearInterval(playbackTimer);
+      playbackTimer = null;
+    }
+  };
 
-            updateStepCount() {
-                this.stepCount.textContent = `${this.steps.length} capturas`;
-            }
+  const startPlaybackTimer = () => {
+    stopPlaybackTimer();
+    playbackTimer = setInterval(() => {
+      setPlaybackElapsed(playbackSamples / SAMPLE_RATE);
+    }, 250);
+  };
 
-            showPreview(imageSrc) {
-                this.previewImage.src = imageSrc;
-                this.previewModal.classList.add('active');
-            }
+  const loadVoices = async () => {
+    try {
+      voiceSelect.disabled = true;
+      const response = await fetch('/config');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch config: ${response.status}`);
+      }
+      const data = await response.json();
+      const voices = Array.isArray(data.voices) ? data.voices : [];
+      voiceSelect.innerHTML = '';
+      if (voices.length === 0) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'No voices available';
+        voiceSelect.appendChild(option);
+        voiceSelect.disabled = true;
+        appendLog('[Error] No voice presets available');
+        return;
+      }
 
-            closePreviewModal() {
-                this.previewModal.classList.remove('active');
-            }
+      voices.forEach(voice => {
+        const option = document.createElement('option');
+        option.value = voice;
+        option.textContent = voice;
+        voiceSelect.appendChild(option);
+      });
 
-            clearSteps() {
-                if (this.steps.length > 0) {
-                    if (confirm('¿Eliminar todas las capturas?')) {
-                        this.steps = [];
-                        this.captureCount = 0;
-                        this.renderSteps();
-                        this.updateStepCount();
-                        this.updateCaptureCounter();
-                        this.updateUI(this.isRecording);
-                    }
-                }
-            }
+      if (data.default_voice && voices.includes(data.default_voice)) {
+        voiceSelect.value = data.default_voice;
+      }
+      voiceSelect.disabled = false;
+      appendLog(`[Frontend] Loaded ${voices.length} voice presets`);
+    } catch (err) {
+      console.error('Failed to load voices', err);
+      voiceSelect.innerHTML = '';
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = 'Load failed';
+      voiceSelect.appendChild(option);
+      voiceSelect.disabled = true;
+      appendLog('[Error] Failed to load voice presets');
+    }
+  };
 
-            async exportToPdf() {
-                if (this.steps.length === 0) {
-                    alert('No hay capturas para exportar');
-                    return;
-                }
+  loadVoices();
 
-                this.loadingOverlay.classList.add('active');
+  resetBtn.addEventListener('click', () => {
+    cfgSelect.value = '1.5';
+    stepsSelect.value = '5';
+    updateCfgDisplay();
+    updateStepsDisplay();
+    appendLog('[Frontend] Controls reset to defaults (CFG=1.5, Steps=5)');
+  });
 
-                try {
-                    await new Promise(resolve => setTimeout(resolve, 100));
+  if (promptInput) {
+    promptInput.addEventListener('input', () => {
+      if (previewActive) {
+        updateStreamingPreview();
+      }
+    });
+  }
 
-                    const title = this.guideTitleInput.value || 'Documentación de Proceso';
-                    const pdf = new jsPDF({
-                        orientation: 'portrait',
-                        unit: 'mm',
-                        format: 'a4'
-                    });
+  const handleLogMessage = raw => {
+    let payload;
+    try {
+      payload = JSON.parse(raw);
+    } catch (err) {
+      appendLog(`[Error] Failed to parse log message: ${raw}`);
+      return;
+    }
+    if (!payload || payload.type !== 'log') {
+      appendLog(`[Log] ${raw}`);
+      return;
+    }
 
-                    const pageWidth = pdf.internal.pageSize.getWidth();
-                    const pageHeight = pdf.internal.pageSize.getHeight();
-                    const margin = 15;
-                    const contentWidth = pageWidth - (margin * 2);
-
-                    // Portada
-                    pdf.setFillColor(30, 64, 175);
-                    pdf.rect(0, 0, pageWidth, pageHeight, 'F');
-                    
-                    pdf.setTextColor(255, 255, 255);
-                    pdf.setFontSize(32);
-                    pdf.setFont(undefined, 'bold');
-                    
-                    const titleLines = pdf.splitTextToSize(title, contentWidth);
-                    const titleY = pageHeight / 2 - 20;
-                    pdf.text(titleLines, pageWidth / 2, titleY, { align: 'center' });
-                    
-                    pdf.setFontSize(14);
-                    pdf.setFont(undefined, 'normal');
-                    const dateStr = new Date().toLocaleString('es-GT');
-                    pdf.text(`${dateStr}`, pageWidth / 2, titleY + 30, { align: 'center' });
-                    pdf.text(`${this.steps.length} pasos documentados`, pageWidth / 2, titleY + 40, { align: 'center' });
-                    
-                    pdf.setFontSize(10);
-                    pdf.text('Generado con ScreenCapture Pro', pageWidth / 2, pageHeight - 15, { align: 'center' });
-
-                    // Páginas de contenido
-                    for (let i = 0; i < this.steps.length; i++) {
-                        const step = this.steps[i];
-                        pdf.addPage();
-
-                        // Header azul con número de paso (como tu ejemplo)
-                        pdf.setFillColor(30, 64, 175);
-                        pdf.rect(0, 0, pageWidth, 35, 'F');
-                        
-                        // Número de paso en círculo blanco
-                        pdf.setFillColor(255, 255, 255);
-                        pdf.circle(25, 17.5, 8, 'F');
-                        
-                        pdf.setTextColor(30, 64, 175);
-                        pdf.setFontSize(16);
-                        pdf.setFont(undefined, 'bold');
-                        pdf.text(`${i + 1}`, 25, 20, { align: 'center' });
-
-                        // Título del paso
-                        pdf.setTextColor(255, 255, 255);
-                        pdf.setFontSize(14);
-                        pdf.setFont(undefined, 'bold');
-                        const stepTitleLines = pdf.splitTextToSize(step.description, contentWidth - 40);
-                        pdf.text(stepTitleLines, 40, 20);
-
-                        // Timestamp debajo del header
-                        pdf.setTextColor(100, 100, 100);
-                        pdf.setFontSize(9);
-                        pdf.setFont(undefined, 'normal');
-                        pdf.text(`⏰ ${step.timestamp}`, margin, 45);
-
-                        // Imagen de la captura
-                        const img = new Image();
-                        img.src = step.screenshot;
-                        await new Promise(resolve => {
-                            img.onload = resolve;
-                        });
-
-                        const imgAspectRatio = img.width / img.height;
-                        const maxImgHeight = pageHeight - 65;
-                        let imgWidth = contentWidth;
-                        let imgHeight = imgWidth / imgAspectRatio;
-
-                        if (imgHeight > maxImgHeight) {
-                            imgHeight = maxImgHeight;
-                            imgWidth = imgHeight * imgAspectRatio;
-                        }
-
-                        const imgX = margin + (contentWidth - imgWidth) / 2;
-                        const imgY = 52;
-
-                        // Borde sutil para la imagen
-                        pdf.setDrawColor(226, 232, 240);
-                        pdf.setLineWidth(0.5);
-                        pdf.rect(imgX - 1, imgY - 1, imgWidth + 2, imgHeight + 2);
-
-                        pdf.addImage(step.screenshot, 'JPEG', imgX, imgY, imgWidth, imgHeight);
-
-                        // Footer
-                        pdf.setFontSize(8);
-                        pdf.setTextColor(150, 150, 150);
-                        pdf.text(`Página ${i + 1} de ${this.steps.length}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
-                    }
-
-                    const fileName = `${title.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`;
-                    pdf.save(fileName);
-
-                    this.loadingOverlay.classList.remove('active');
-                    alert('✅ PDF generado exitosamente!');
-
-                } catch (error) {
-                    console.error('Error al generar PDF:', error);
-                    this.loadingOverlay.classList.remove('active');
-                    alert('❌ Error al generar el PDF.');
-                }
-            }
-
-            exportToHtml() {
-                const title = this.guideTitleInput.value || 'Documentación de Proceso';
-                
-                let html = `<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${title}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f8fafc;
-            padding: 40px 20px;
+    const { event, data = {}, timestamp } = payload;
+    switch (event) {
+      case 'backend_request_received': {
+        const cfg = typeof data.cfg_scale === 'number' ? data.cfg_scale.toFixed(3) : data.cfg_scale;
+        const steps = data.inference_steps ?? 'default';
+        const voice = data.voice || 'default';
+        const textLength = data.text_length ?? 0;
+        appendLog(`[Backend]  Received request`, timestamp);
+        break;
+      }
+      case 'backend_first_chunk_sent':
+        appendLog('[Backend]  Sent first audio chunk', timestamp);
+        break;
+      case 'model_progress':
+        if (typeof data.generated_sec !== 'undefined') {
+          const generated = Number(data.generated_sec);
+          if (Number.isFinite(generated)) {
+            setModelGenerated(generated);
+          }
         }
-        .container { max-width: 1000px; margin: 0 auto; }
-        .header {
-            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
-            color: white;
-            padding: 50px;
-            border-radius: 16px;
-            margin-bottom: 40px;
-            text-align: center;
-        }
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 15px;
-            font-weight: 800;
-        }
-        .header p {
-            opacity: 0.95;
-            font-size: 1.1em;
-        }
-        .step {
-            background: white;
-            padding: 0;
-            margin-bottom: 30px;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-        .step-header {
-            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
-            color: white;
-            padding: 20px 30px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        .step-number {
-            background: white;
-            color: #1e40af;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 22px;
-            flex-shrink: 0;
-        }
-        .step-info { flex: 1; }
-        .step-title {
-            font-size: 1.2em;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-        .step-timestamp {
-            opacity: 0.9;
-            font-size: 0.9em;
-        }
-        .step-content {
-            padding: 30px;
-        }
-        .step-screenshot {
-            width: 100%;
-            border-radius: 8px;
-            border: 2px solid #e2e8f0;
-        }
-        .footer {
-            text-align: center;
-            color: #94a3b8;
-            margin-top: 50px;
-            padding: 30px;
-            font-size: 0.9em;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>📖 ${title}</h1>
-            <p>Generado el ${new Date().toLocaleString('es-GT')} • ${this.steps.length} pasos documentados</p>
-        </div>
-`;
+        return;
+      case 'generation_error':
+        appendLog(`[Error] Generation error: ${data.message || 'Unknown error'}`, timestamp);
+        break;
+      case 'backend_error':
+        appendLog(`[Error] Backend error: ${data.message || 'Unknown error'}`, timestamp);
+        break;
+      case 'client_disconnected':
+        appendLog('[Frontend] Client disconnected', timestamp);
+        break;
+      case 'backend_stream_complete':
+        appendLog('[Backend]  Backend finished', timestamp);
+        recordingComplete = true;
+        updateSaveButtonState();
+        break;
+      default:
+        appendLog(`[Log] Event ${event}`, timestamp);
+        break;
+    }
+  };
 
-                this.steps.forEach((step, index) => {
-                    html += `
-        <div class="step">
-            <div class="step-header">
-                <div class="step-number">${index + 1}</div>
-                <div class="step-info">
-                    <div class="step-title">${step.description}</div>
-                    <div class="step-timestamp">⏰ ${step.timestamp}</div>
-                </div>
-            </div>
-            <div class="step-content">
-                <img src="${step.screenshot}" alt="Paso ${index + 1}" class="step-screenshot">
-            </div>
-        </div>
-`;
-                });
+  const updateButtonLabel = () => {
+    controlBtn.textContent = isPlaying ? 'Stop' : 'Start';
+    controlBtn.classList.toggle('playing', isPlaying);
+  };
 
-                html += `
-        <div class="footer">
-            <p>📸 Creado con ScreenCapture Pro</p>
-        </div>
-    </div>
-</body>
-</html>
-`;
+  const appendAudio = chunk => {
+    const merged = new Float32Array(buffer.length + chunk.length);
+    merged.set(buffer, 0);
+    merged.set(chunk, buffer.length);
+    buffer = merged;
+  };
 
-                const blob = new Blob([html], { type: 'text/html' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${title.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.html`;
-                a.click();
-                URL.revokeObjectURL(url);
+  const pullAudio = frameCount => {
+    const available = buffer.length;
+    if (available === 0) {
+      return new Float32Array(frameCount);
+    }
+    if (available <= frameCount) {
+      const chunk = buffer;
+      buffer = new Float32Array(0);
+      if (chunk.length < frameCount) {
+        const padded = new Float32Array(frameCount);
+        padded.set(chunk, 0);
+        return padded;
+      }
+      return chunk;
+    }
+    const chunk = buffer.subarray(0, frameCount);
+    buffer = buffer.subarray(frameCount);
+    return chunk;
+  };
 
-                alert('✅ HTML exportado exitosamente!');
-            }
+  const closeSocket = () => {
+    if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+      socket.close();
+    }
+    socket = null;
+  };
+
+  const resetPlaybackFlags = (resetSamples = true) => {
+    buffer = new Float32Array(0);
+    if (resetSamples) {
+      playbackSamples = 0;
+      setPlaybackElapsed(0);
+    }
+    hasStartedPlayback = false;
+    silentFrameCount = 0;
+    firstBrowserChunkLogged = false;
+    playbackStartedLogged = false;
+  };
+
+  const teardownAudio = () => {
+    if (scriptNode) {
+      try { scriptNode.disconnect(); } catch (err) { console.warn('disconnect error', err); }
+      scriptNode.onaudioprocess = null;
+    }
+    if (audioCtx) {
+      try { audioCtx.close(); } catch (err) { console.warn('audioCtx.close error', err); }
+    }
+    audioCtx = null;
+    scriptNode = null;
+  };
+
+  const resetState = (resetSamples = true) => {
+    closeSocket();
+    teardownAudio();
+    resetPlaybackFlags(resetSamples);
+    isPlaying = false;
+    stopPlaybackTimer();
+  };
+
+  const createAudioChain = () => {
+    teardownAudio();
+    resetPlaybackFlags();
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: SAMPLE_RATE });
+    scriptNode = audioCtx.createScriptProcessor(BUFFER_SIZE, 0, 1);
+
+    const minBufferSamples = Math.floor(audioCtx.sampleRate * PREBUFFER_SEC);
+
+    scriptNode.onaudioprocess = event => {
+      const output = event.outputBuffer.getChannelData(0);
+      const needPrebuffer = !hasStartedPlayback;
+      const socketClosed = !socket || socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING;
+
+      if (needPrebuffer) {
+        if (buffer.length >= minBufferSamples || socketClosed) {
+          hasStartedPlayback = true;
+          if (!playbackStartedLogged) {
+            playbackStartedLogged = true;
+            appendLog('[Frontend] Browser started to play audio');
+            startPlaybackTimer();
+          }
+        } else {
+          output.fill(0);
+          return;
         }
+      }
 
-        const app = new ScreenCaptureApp();
-    </script>
+      const chunk = pullAudio(output.length);
+      output.set(chunk);
+
+      if (hasStartedPlayback) {
+        playbackSamples += output.length;
+      }
+
+      if (socketClosed && buffer.length === 0 && chunk.every(sample => sample === 0)) {
+        silentFrameCount += 1;
+        if (silentFrameCount >= 4) {
+          stop();
+        }
+      } else {
+        silentFrameCount = 0;
+      }
+    };
+
+    scriptNode.connect(audioCtx.destination);
+  };
+
+  const start = () => {
+    if (isPlaying) {
+      return;
+    }
+
+    const textValue = promptInput?.value || '';
+    const cfgValue = Number(cfgSelect.value);
+    const stepsValue = Number(stepsSelect.value);
+    const voiceValue = voiceSelect.value || '';
+
+    clearLogs();
+    const cfgDisplay = Number.isFinite(cfgValue) ? cfgValue.toFixed(3) : 'default';
+    const stepsDisplay = Number.isFinite(stepsValue) ? stepsValue : 'default';
+    appendLog(`[Frontend] Start button clicked, CFG=${cfgDisplay}, Steps=${stepsDisplay}, Speaker=${voiceValue || 'default'}`);
+    setModelGenerated(0);
+    setPlaybackElapsed(0);
+
+    resetState(true);
+    clearRecordedChunks();
+    isPlaying = true;
+    previewActive = true;
+    updateStreamingPreview();
+    updateButtonLabel();
+    createAudioChain();
+
+    const params = new URLSearchParams();
+    params.set('text', textValue);
+    if (!Number.isNaN(cfgValue)) {
+      params.set('cfg', cfgValue.toFixed(3));
+    }
+    if (!Number.isNaN(stepsValue)) {
+      params.set('steps', stepsValue.toString());
+    }
+    if (voiceValue) {
+      params.set('voice', voiceValue);
+    }
+    const wsUrl = `${location.origin.replace(/^http/, 'ws')}/stream?${params.toString()}`;
+
+    socket = new WebSocket(wsUrl);
+    socket.binaryType = 'arraybuffer';
+
+    socket.onmessage = event => {
+      if (typeof event.data === 'string') {
+        handleLogMessage(event.data);
+        return;
+      }
+
+      if (!(event.data instanceof ArrayBuffer)) {
+        return;
+      }
+      const rawBuffer = event.data.slice(0);
+      const view = new DataView(rawBuffer);
+      const floatChunk = new Float32Array(view.byteLength / 2);
+      for (let i = 0; i < floatChunk.length; i += 1) {
+        floatChunk[i] = view.getInt16(i * 2, true) / 32768;
+      }
+      appendAudio(floatChunk);
+      recordedChunks.push(rawBuffer);
+      recordedSamples += floatChunk.length;
+      updateSaveButtonState();
+
+      if (!firstBrowserChunkLogged) {
+        firstBrowserChunkLogged = true;
+        appendLog('[Frontend] Received first audio chunk');
+      }
+    };
+
+    socket.onerror = err => {
+      console.error('WebSocket error', err);
+      appendLog(`[Error] WebSocket error: ${err?.message || err}`);
+      stop();
+    };
+
+    socket.onclose = () => {
+      socket = null;
+      if (recordedSamples > 0) {
+        recordingComplete = true;
+        updateSaveButtonState();
+      }
+    };
+  };
+
+  const stop = () => {
+    if (!isPlaying) {
+      resetState(false);
+      updateButtonLabel();
+      return;
+    }
+    resetState(false);
+    setPlaybackElapsed(Math.min(lastPlaybackElapsed, modelGeneratedTotal));
+    appendLog('[Frontend] Playback stopped');
+    if (recordedSamples > 0) {
+      recordingComplete = true;
+      updateSaveButtonState();
+    }
+    previewActive = false;
+    clearPreviewTimer();
+    streamingPreview?.classList.remove('streaming-active');
+    updateButtonLabel();
+  };
+
+  controlBtn.addEventListener('click', () => {
+    if (isPlaying) {
+      stop();
+    } else {
+      start();
+    }
+  });
+  if (saveBtn) {
+    saveBtn.addEventListener('click', handleSaveClick);
+  }
+  updateButtonLabel();
+  updateSaveButtonState();
+  window.addEventListener('beforeunload', () => {
+    resetState();
+    clearPreviewTimer();
+    revokeDownloadUrl();
+  });
+})();
+</script>
 </body>
 </html>
